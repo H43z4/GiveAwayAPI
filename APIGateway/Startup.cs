@@ -106,11 +106,11 @@ namespace APIGateway
             });
 
             app.UseStaticFiles();
-            app.UseStaticFiles(new StaticFileOptions()
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Attachments")),
-                RequestPath = new PathString("/Attachments")
-            });
+            //app.UseStaticFiles(new StaticFileOptions()
+            //{
+            //    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Attachments")),
+            //    RequestPath = new PathString("/Attachments")
+            //});
             app.UseRouting();
 
 
