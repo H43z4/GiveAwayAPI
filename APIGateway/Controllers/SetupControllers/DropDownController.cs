@@ -15,7 +15,7 @@ namespace APIGateway.Controllers.SetupControllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
+    //[Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
     public class DropDownController : Controller
     {
         private readonly ILovService listOfValuesService;
@@ -55,7 +55,25 @@ namespace APIGateway.Controllers.SetupControllers
                 throw;
             }
         }
+        [HttpGet]
+        public async Task<ApiResponse> GetCategoryLOV()
+        {
+            try
+            {
+                listOfValuesService.VwDSUser = User;
+                DataSet resultData = await listOfValuesService.GetCategoryLOV();
+                var lst = resultData.Tables[0].ToList<VwLOVs>();
 
+                var apiResponseType = lst != null ? ApiResponseType.SUCCESS : ApiResponseType.NOT_FOUND;
+                var msg = lst != null ? Constants.RECORD_FOUND_MESSAGE : Constants.NOT_FOUND_MESSAGE;
+
+                return ApiResponse.GetApiResponse(apiResponseType, lst, msg);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
         [HttpGet]
         public async Task<ApiResponse> GetCountriesLOV()
         {

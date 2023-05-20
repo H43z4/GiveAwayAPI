@@ -5,8 +5,6 @@ using Models.DatabaseModels.Logging;
 using Models.DatabaseModels.DSSDatabaseObjects.Setup;
 using Models.DatabaseModels.DSSDatabaseObjects.Core;
 using System.Linq;
-using Models.DatabaseModels.DSSDatabaseObjects.Core;
-using Models.DatabaseModels.DSSDatabaseObjects.Setup;
 
 namespace RepositoryLayer
 {
@@ -67,12 +65,19 @@ namespace RepositoryLayer
             modelBuilder.Entity<ProductDetail>().ToTable("ProductDetail", "Setup");
 
             #endregion
+            #region Posts
+            modelBuilder.Entity<Post>().ToTable("Post", "Setup");
+            modelBuilder.Entity<Pictures>().ToTable("Pictures", "Setup");
 
+
+
+            #endregion
             #region Core
 
 
             modelBuilder.Entity<DSPerson>().ToTable("DSPerson", "Core");
             modelBuilder.Entity<Country>().ToTable("Country", "Setup");
+            modelBuilder.Entity<Category>().ToTable("Category", "Setup");
             modelBuilder.Entity<City>().ToTable("City", "Setup");
             modelBuilder.Entity<Profession>().ToTable("Profession", "Setup");
             #endregion
@@ -119,7 +124,8 @@ namespace RepositoryLayer
         public DbSet<UserType> UserType { get; set; }
         public DbSet<DSUser> DSUser{ get; set; }
 
-        //public DbSet<DSUser> DSUser { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Pictures> Picture { get; set; }
 
         #endregion
 

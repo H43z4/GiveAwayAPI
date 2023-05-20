@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
 using Microsoft.AspNetCore.Http.Features;
+using PostManagement;
 
 namespace APIGateway
 {
@@ -52,6 +53,7 @@ namespace APIGateway
             services.AddScoped<ITokenService, Authentication.JwtStatelessToken.TokenService>();
             //services.AddTransient<ILog, LogService>();
             services.AddScoped<ILoggingService, LoggingService>();
+            services.AddScoped<IPostManagementService, PostManagementService>();
             services.AddTransient<IUserManagement, UserManagement.UserManagement>();
             #region Setup-Services
 
@@ -66,6 +68,7 @@ namespace APIGateway
             #region DonationSystem-Services
             services.AddTransient<IPersonService, PersonService>();
             services.AddTransient<ILovService, LovService>();
+            //services.AddTransient<IPostManagementService, UserManagement>();
             #endregion
             services.AddStatelessTokenAuthentication();
 

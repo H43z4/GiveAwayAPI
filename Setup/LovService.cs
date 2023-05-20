@@ -9,6 +9,7 @@ namespace Setup
     public interface ILovService : ICurrentDSUser
     {
         Task<DataSet> GetCitiesLOV();
+        Task<DataSet> GetCategoryLOV();
         Task<DataSet> GetCountriesLOV();
         Task<DataSet> GetDistrictsLOV();
         Task<DataSet> GetManufacturersLOV();
@@ -44,7 +45,12 @@ namespace Setup
 
             return ds;
         }
+        public async Task<DataSet> GetCategoryLOV()
+        {
+            var ds = await this.dbHelper.GetDataSetByStoredProcedure("[Setup].[GetCategoryLOV]", null);
 
+            return ds;
+        }
         public async Task<DataSet> GetDistrictsLOV()
         {
             var ds = await this.dbHelper.GetDataSetByStoredProcedure("[Setup].[GetDistrictsLOV]", null);
