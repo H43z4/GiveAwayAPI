@@ -15,7 +15,7 @@ namespace APIGateway.Controllers.SetupControllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
+    [Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
     public class DropDownController : Controller
     {
         private readonly ILovService listOfValuesService;

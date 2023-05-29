@@ -20,6 +20,8 @@ using Microsoft.Extensions.FileProviders;
 using System.IO;
 using Microsoft.AspNetCore.Http.Features;
 using PostManagement;
+using ReviewAndRating;
+using ChatManagement;
 
 namespace APIGateway
 {
@@ -53,7 +55,6 @@ namespace APIGateway
             services.AddScoped<ITokenService, Authentication.JwtStatelessToken.TokenService>();
             //services.AddTransient<ILog, LogService>();
             services.AddScoped<ILoggingService, LoggingService>();
-            services.AddScoped<IPostManagementService, PostManagementService>();
             services.AddTransient<IUserManagement, UserManagement.UserManagement>();
             #region Setup-Services
 
@@ -68,11 +69,17 @@ namespace APIGateway
             #region DonationSystem-Services
             services.AddTransient<IPersonService, PersonService>();
             services.AddTransient<ILovService, LovService>();
-            //services.AddTransient<IPostManagementService, UserManagement>();
+            services.AddTransient<IPostManagementService, PostManagementService>();
+            services.AddTransient<IReviewServise, ReviewServise>();
+            services.AddTransient<IChatServise, ChatServices>();
+
             #endregion
             services.AddStatelessTokenAuthentication();
 
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
             //services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings. });
 
             // Register the Swagger generator, defining 1 or more Swagger documents

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Models.DatabaseModels.Authentication;
 using Models.ViewModels.Common;
 using Models.ViewModels.DSAuth.Setup;
@@ -24,6 +25,8 @@ namespace UserManagement
         GeneralType<UserRole> SaveUserRole(UserRole userRole);
         List<Role> GetUserRoles(long userId);
         Task<DataSet> CreateUser(VwDSAUser userObj);
+        Task<User> GetUserByUserId(int userId);
+        Task<int> UpdateUserData(VwDSAUser userObj);
     }
 
     public class UserManagement : IUserManagement
@@ -177,6 +180,8 @@ namespace UserManagement
 
             paramDict.Add("@UserName", userObj.UserName);
             paramDict.Add("@FullName", userObj.FullName);
+            paramDict.Add("@UserTypeId", userObj.UserTypeId);
+            paramDict.Add("@PersonUID", userObj.PersonId);
             paramDict.Add("@Email", userObj.Email);
             paramDict.Add("@Password", userObj.Password);
             paramDict.Add("@Address", userObj.Address);
@@ -187,6 +192,24 @@ namespace UserManagement
 
             var ds = await this.dbHelper.GetDataSetByStoredProcedure("[Setup].[CreateUser]", paramDict);
             return ds;
+        }
+        public async Task<User> GetUserByUserId(int userId)
+        {
+            var ds = await context.User.Where(X => X.UserId == userId).FirstOrDefaultAsync(); //
+            return ds;
+        }
+        public async Task<int> UpdateUserData(VwDSAUser userObj)
+        {
+            var ds = await context.User.Where(X => X.UserId == userObj.UserId).FirstOrDefaultAsync(); //
+            if (ds == null)
+                return 0;
+            ds.FullName = userObj.FullName;
+            ds.Address= userObj.Address;
+            ds.UserName = userObj.UserName;
+            ds.Email = userObj.Email;
+            ds.Password = userObj.Password;
+            ds.PhoneNumber = userObj.PhoneNumber;
+            return 1;
         }
     }
 }

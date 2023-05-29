@@ -68,6 +68,10 @@ namespace RepositoryLayer
             #region Posts
             modelBuilder.Entity<Post>().ToTable("Post", "Setup");
             modelBuilder.Entity<Pictures>().ToTable("Pictures", "Setup");
+            modelBuilder.Entity<Review>().ToTable("Review", "Setup");
+            modelBuilder.Entity<Rating>().ToTable("Rating", "Setup");
+            modelBuilder.Entity<Chats>().ToTable("Chats", "Setup");
+            modelBuilder.Entity<Messages>().ToTable("Messages", "Setup");
 
 
 
@@ -125,7 +129,11 @@ namespace RepositoryLayer
         public DbSet<DSUser> DSUser{ get; set; }
 
         public DbSet<Post> Posts { get; set; }
-        public DbSet<Pictures> Picture { get; set; }
+        public DbSet<Pictures> Pictures { get; set; }
+        public DbSet<Review> Review { get; set; }
+        public DbSet<Rating> Rating { get; set; }
+        public DbSet<Chats> Chat { get; set; }
+        public DbSet<Messages> Message { get; set; }
 
         #endregion
 

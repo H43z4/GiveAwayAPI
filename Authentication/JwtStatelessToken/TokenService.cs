@@ -102,7 +102,8 @@ namespace Authentication.JwtStatelessToken
             { 
                 UserId = vwUser.UserId,
                 UserName = vwUser.UserName,
-                Password = vwUser.Password 
+                Password = vwUser.Password,
+                FullName = vwUser.FullName,
             };
 
             var passwordHasher = new PasswordHasher<Models.DatabaseModels.Authentication.User>();
@@ -254,13 +255,13 @@ namespace Authentication.JwtStatelessToken
                 var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "UserId").Value);
                 var userName = jwtToken.Claims.First(x => x.Type == "nameid").Value;
                // var userDistrictId = int.Parse(jwtToken.Claims.First(x => x.Type == "UserDistrictId").Value);
-                var userRoleIds = jwtToken.Claims.First(x => x.Type == "RoleId").Value
-                                    .Split(",")
-                                    .ToList();
+                //var userRoleIds = jwtToken.Claims.First(x => x.Type == "RoleId").Value
+                                    //.Split(",")
+                                    //.ToList();
 
-                var userRoles = new List<Role>();
+                //var userRoles = new List<Role>();
                 
-                userRoleIds.ForEach(x => userRoles.Add(new Role() { RoleId = Convert.ToInt32(x) }));
+                //userRoleIds.ForEach(x => userRoles.Add(new Role() { RoleId = Convert.ToInt32(x) }));
 
                 return new TokenInfo()
                 {
@@ -270,7 +271,7 @@ namespace Authentication.JwtStatelessToken
                         UserId = userId,
                         UserName = userName,
                         //UserDistrictId = userDistrictId,
-                        UserRoles = userRoles
+                        //UserRoles = userRoles
                     }
                 };
             }

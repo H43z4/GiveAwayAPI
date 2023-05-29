@@ -12,6 +12,12 @@ namespace APIGateway.Logging
             {
                 context.HttpContext.Items["jsonbody"] = JsonConvert.SerializeObject(context.Result);
             }
+            //var settings = new JsonSerializerSettings
+            //{
+            //    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            //};
+
+            //string json = JsonConvert.SerializeObject(Posts, settings);
 
             //context.HttpContext.Items["body"] = JsonConvert.SerializeObject(context.Result);
             //context.HttpContext.Items["jsonbody"] = JsonConvert.SerializeObject(context.Result);

@@ -15,7 +15,7 @@ namespace APIGateway.Controllers.SetupControllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
+    //[Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
     public class SetupController : ControllerBase
     {
         private readonly IUserManagement userManagementService;
@@ -50,6 +50,34 @@ namespace APIGateway.Controllers.SetupControllers
             else
             {
                 return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE + ds.Tables[0].Rows[0][1].ToString());
+            }
+        }
+        [HttpGet]
+        public async Task<ApiResponse> GetUserById(int Id)
+        {
+            var ds = await this.userManagementService.GetUserByUserId(Id);
+
+            if (ds != null)
+            {
+                return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
+            }
+            else
+            {
+                return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE );
+            }
+        }
+        [HttpPut]
+        public async Task<ApiResponse> UpdateUserData(VwDSAUser userObj)
+        {
+            var ds = await this.userManagementService.UpdateUserData(userObj);
+
+            if (ds == 1)
+            {
+                return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.DATA_SAVED_MESSAGE);
+            }
+            else
+            {
+                return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE);
             }
         }
     }

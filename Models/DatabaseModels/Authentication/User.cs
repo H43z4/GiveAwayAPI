@@ -11,7 +11,8 @@ namespace Models.DatabaseModels.Authentication
 
         //[NotMapped]
         //[ForeignKey("Person")]
-        public long? PersonId { get; set; }
+        [StringLength(50)]
+        public string PersonId { get; set; }
         //public virtual Person Person { get; set; }
 
 

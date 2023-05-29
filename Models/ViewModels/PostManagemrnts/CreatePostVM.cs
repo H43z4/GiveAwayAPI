@@ -15,7 +15,7 @@ namespace Models.ViewModels.PostManagemrnts
         public string PostTitle { get; set; } = string.Empty;
         public string PostDiscription { get; set; } = string.Empty;
         public int Quantity { get; set; } = 0;
-        public DateTime ValidDate { get; set; }
+        public string ValidDate { get; set; }
         public int ItemSize { get; set; }
         public string Location { get; set; }
         public List<IFormFile> Images { get; set; }

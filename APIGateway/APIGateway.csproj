@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.15" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NSwag.Annotations" Version="13.19.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     <PackageReference Include="Wkhtmltopdf.NetCore" Version="3.0.2" />
   </ItemGroup>
@@ -25,10 +26,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Admin\Admin.csproj" />
     <ProjectReference Include="..\Authentication\Authentication.csproj" />
+    <ProjectReference Include="..\ChatManagement\ChatManagement.csproj" />
     <ProjectReference Include="..\Logging\Logging.csproj" />
     <ProjectReference Include="..\Person\Person.csproj" />
     <ProjectReference Include="..\PostManagement\PostManagement.csproj" />
     <ProjectReference Include="..\RepositoryLayer\RepositoryLayer.csproj" />
+    <ProjectReference Include="..\ReviewAndRating\ReviewAndRating.csproj" />
     <ProjectReference Include="..\Setup\Setup.csproj" />
     <ProjectReference Include="..\SharedLib\SharedLib.csproj" />
     <ProjectReference Include="..\UserManagement\UserManagement.csproj" />

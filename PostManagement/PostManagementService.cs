@@ -1,81 +1,110 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models.DatabaseModels.DSSDatabaseObjects.Setup;
 using Models.ViewModels.DSAuth.Setup;
 using Models.ViewModels.PostManagemrnts;
 using RepositoryLayer;
 using SharedLib.Interfaces;
+using UserManagement;
 
 namespace PostManagement
 {
     public interface IPostManagementService : ICurrentDSUser
     {
-        int craetePost(CreatePostVM createPost); 
-        int UpdatePost(UpdatePostVM createPost);
-        int ChnagePostStatus (ChangePostStatusVM changePostStatus); 
-        List<ResponsePostVM> GetAllPosts();
-        ResponsePostVM GetAllPostsById(int Id);       
+        Task<int> craetePost(CreatePostVM createPost);
+        Task<int> UpdatePost(UpdatePostVM createPost);
+        Task<int> DeletePost(int postId);
+        Task<int> ChnagePostStatus(ChangePostStatusVM changePostStatus);
+        Task<List<ResponsePostVM>> GetAllPosts();
+        Task<List<ResponsePostVM>> SearchPostsbyTitle(string searchstr, int catogaryid);
+        Task<ResponsePostVM> GetPostsById(int Id);
+        Task<UserWithPostsVM> GetUserByIdWithPosts(int userId);
     }
     public class PostManagementService : IPostManagementService
     {
         private readonly AppDbContext _context;
+        private readonly IUserManagement UserManagement;
         public VwDSUser VwUser { get; set; }
         public VwDSUser VwDSUser { get; set; }
-        public PostManagementService(AppDbContext context)
+        public PostManagementService(AppDbContext context, IUserManagement userManagement)
         {
             _context = context;
+            UserManagement = userManagement;
         }
 
-        public int ChnagePostStatus(ChangePostStatusVM changePostStatus)
+        public async Task<int> ChnagePostStatus(ChangePostStatusVM changePostStatus)
         {
-            var data = _context.Posts.Where(x=>x.Id== changePostStatus.Id).FirstOrDefault();
+            var data = await _context.Posts.Where(x => x.Id == changePostStatus.Id).FirstOrDefaultAsync();
             if (data == null)
                 return 0;
             data.IsActive = changePostStatus.Status;
             _context.Posts.Update(data);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return 1;
         }
 
-        public int craetePost(CreatePostVM createPost)
+        public async Task<int> craetePost(CreatePostVM createPost)
         {
             try
             {
                 Post newpost = new Post();
-                newpost.UserId = createPost.UserId;
+                newpost.UserId = (int)VwDSUser.UserId;
                 newpost.CategoryId = createPost.CategoryId;
                 newpost.PostTitle = createPost.PostTitle;
                 newpost.PostDiscription = createPost.PostDiscription;
                 newpost.Quantity = createPost.Quantity;
-                newpost.ValidDate = createPost.ValidDate;
+                if (createPost.ValidDate != null)
+                {
+                    newpost.ValidDate = DateTime.Parse(createPost.ValidDate);
+                }
                 newpost.ItemSize = createPost.ItemSize;
                 newpost.Location = createPost.Location;
                 newpost.CreatePost = DateTime.Now;
                 newpost.IsActive = true;
                 _context.Posts.Add(newpost);
-                _context.SaveChangesAsync();
-                foreach (var post in createPost.Images)
+                await _context.SaveChangesAsync();
+                if (createPost.Images != null)
                 {
-                    var temp = UploadPicture(post, newpost.Id);
+
+                    foreach (var post in createPost.Images)
+                    {
+                        var temp = UploadPicture(post, newpost.Id);
+                    }
                 }
-            }catch (Exception ex)
+                return 1;
+            }
+            catch (Exception ex)
             {
                 throw;
             }
-           
-          
-           
-            return 1;
+
 
         }
-        
-        public List<ResponsePostVM> GetAllPosts()
+
+        public async Task<int> DeletePost(int postId)
+        {
+            var data = await _context.Posts.Where(x => x.Id == postId).FirstOrDefaultAsync();
+            if (data != null)
+            {
+                data.IsActive = false;
+                _context.Posts.Update(data);
+                await _context.SaveChangesAsync();
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public async Task<List<ResponsePostVM>> GetAllPosts()
         {
             DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
 
             //disable post before then 30 days
-            var disable= _context.Posts.Where(x => x.CreatePost<thirtyDaysAgo && x.IsActive == true).ToList();
-            foreach(var item in disable)
+            var disable = await _context.Posts.Where(x => x.CreatePost < thirtyDaysAgo && x.IsActive == true).ToListAsync();
+            foreach (var item in disable)
             {
                 var temp = new ChangePostStatusVM();
                 temp.Id = item.Id;
@@ -84,56 +113,180 @@ namespace PostManagement
             }
 
             //get all posts
-            var data = (from _post in _context.Posts
-                        where (_post.CreatePost >= thirtyDaysAgo&& _post.IsActive==true)
-                    select new ResponsePostVM()
-                    {
-                        Id = _post.Id,
-                        UserId = _post.UserId,
-                        CategoryId= _post.CategoryId,
-                        PostTitle= _post.PostTitle,
-                        PostDiscription= _post.PostDiscription,
-                        Quantity= _post.Quantity,
-                        ValidDate=_post.ValidDate,
-                        ItemSize= _post.ItemSize,
-                        Location= _post.Location,                          
-                    }).ToList();
+            var data = await (from _post in _context.Posts
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true)
+                              select new ResponsePostVM()
+                              {
+                                  Id = _post.Id,
+                                  UserId = _post.UserId,
+                                  CategoryId = _post.CategoryId,
+                                  PostTitle = _post.PostTitle,
+                                  PostDiscription = _post.PostDiscription,
+                                  Quantity = _post.Quantity,
+                                  ValidDate = _post.ValidDate,
+                                  ItemSize = _post.ItemSize,
+                                  Location = _post.Location,
+                              }).ToListAsync();
 
-           foreach(var post in data)
+            foreach (var post in data)
             {
-               post.Images=GetPicture(post.Id);
+                post.Images = GetPicture(post.Id);
+
             }
 
             return data;
         }
 
-        public ResponsePostVM GetAllPostsById(int Id)
+        public async Task<ResponsePostVM> GetPostsById(int Id)
         {
-            DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
-            var data = _context.Posts.Where(x=>x.Id==Id && x.CreatePost >= thirtyDaysAgo&& x.IsActive==true).FirstOrDefault();
-            if (data == null)
-                return null;
+            try
+            {
+                DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
+                var data = _context.Posts.Where(x => x.Id == Id && x.CreatePost >= thirtyDaysAgo && x.IsActive == true).FirstOrDefault();
+                if (data == null)
+                    return null;
 
-            var post= new ResponsePostVM();
-            post.Id = data.Id;
-            post.UserId = data.UserId;
-            post.CategoryId = data.CategoryId;
-            post.PostTitle = data.PostTitle;
-            post.PostDiscription = data.PostDiscription;
-            post.Quantity = data.Quantity;
-            post.ValidDate = data.ValidDate;    
-            post.ItemSize = data.ItemSize;
-            post.Location = data.Location;
-            post.Images = GetPicture(post.Id);
-            return post;
+                var datapost = new ResponsePostVM();
+                datapost.Id = data.Id;
+                datapost.UserId = data.UserId;
+                var userDetail = _context.User.Where(x=>x.UserId == datapost.UserId ).FirstOrDefault();
+                if (userDetail != null)
+                {
+                    datapost.UserName = userDetail.FullName;
+                }
+                datapost.CategoryId = data.CategoryId;
+                datapost.PostTitle = data.PostTitle;
+                datapost.PostDiscription = data.PostDiscription;
+                datapost.Quantity = data.Quantity;
+                datapost.ValidDate = data.ValidDate;
+                datapost.ItemSize = data.ItemSize;
+                datapost.Location = data.Location;
+                datapost.CreateDate = data.CreatePost;
+                datapost.Images = await Task.Run(() => GetPicture(datapost.Id));
+                return datapost;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
 
-        public int UpdatePost(UpdatePostVM UpdatePost)
+        public async Task<UserWithPostsVM> GetUserByIdWithPosts(int userId)
         {
-            var data= _context.Posts.Where(x=>x.Id== UpdatePost.Id).FirstOrDefault();
+            try
+            {
+                DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
+                var userWithPostsVM = new UserWithPostsVM();
+                var data = await UserManagement.GetUserByUserId(userId);
+                if (data == null)
+                    return null;
+                userWithPostsVM.FullName = data.FullName;
+                userWithPostsVM.Address = data.Address;
+                userWithPostsVM.PhoneNumber = data.PhoneNumber;
+                userWithPostsVM.Email = data.Email;
+                userWithPostsVM.userId = data.UserId;
+
+                userWithPostsVM.Posts = await (from _post in _context.Posts
+                                               where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.UserId == userId)
+                                               select new ResponsePostVM()
+                                               {
+                                                   Id = _post.Id,
+                                                   UserId = _post.UserId,
+                                                   CategoryId = _post.CategoryId,
+                                                   PostTitle = _post.PostTitle,
+                                                   PostDiscription = _post.PostDiscription,
+                                                   Quantity = _post.Quantity,
+                                                   ValidDate = _post.ValidDate,
+                                                   ItemSize = _post.ItemSize,
+                                                   Location = _post.Location,
+                                               }).ToListAsync();
+
+                foreach (var post in userWithPostsVM.Posts)
+                {
+                    post.Images = GetPicture(post.Id);
+
+                }
+                return userWithPostsVM;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+
+        }
+        public async Task<List<ResponsePostVM>> SearchPostsbyTitle(string searchstr, int catogaryid)
+        {
+            DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
+            var data = new List<ResponsePostVM>();
+            if (catogaryid > 0 && (searchstr == null || searchstr.Trim() == "")) { 
+            data = await (from _post in _context.Posts
+                          where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.CategoryId == catogaryid)
+                          select new ResponsePostVM()
+                          {
+                              Id = _post.Id,
+                              UserId = _post.UserId,
+                              CategoryId = _post.CategoryId,
+                              PostTitle = _post.PostTitle,
+                              PostDiscription = _post.PostDiscription,
+                              Quantity = _post.Quantity,
+                              ValidDate = _post.ValidDate,
+                              ItemSize = _post.ItemSize,
+                              Location = _post.Location,
+                          }).ToListAsync();
+            }
+            else if (searchstr != null && searchstr.Trim() != "" && catogaryid > 0)
+            {
+                data = await (from _post in _context.Posts
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.PostTitle.Contains(searchstr) && _post.CategoryId == catogaryid)
+                              select new ResponsePostVM()
+                              {
+                                  Id = _post.Id,
+                                  UserId = _post.UserId,
+                                  CategoryId = _post.CategoryId,
+                                  PostTitle = _post.PostTitle,
+                                  PostDiscription = _post.PostDiscription,
+                                  Quantity = _post.Quantity,
+                                  ValidDate = _post.ValidDate,
+                                  ItemSize = _post.ItemSize,
+                                  Location = _post.Location,
+                              }).ToListAsync();
+            }else if (searchstr != null && searchstr.Trim() != "" && catogaryid == 0)
+            {
+                data = await (from _post in _context.Posts
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.PostTitle.Contains(searchstr))
+                              select new ResponsePostVM()
+                              {
+                                  Id = _post.Id,
+                                  UserId = _post.UserId,
+                                  CategoryId = _post.CategoryId,
+                                  PostTitle = _post.PostTitle,
+                                  PostDiscription = _post.PostDiscription,
+                                  Quantity = _post.Quantity,
+                                  ValidDate = _post.ValidDate,
+                                  ItemSize = _post.ItemSize,
+                                  Location = _post.Location,
+                              }).ToListAsync();
+            }
+            else
+            {
+                var allData = GetAllPosts();
+                data = allData.Result;
+            }
+            foreach (var post in data)
+            {
+                post.Images = GetPicture(post.Id);
+            }
+
+            return data;
+        }
+        public async Task<int> UpdatePost(UpdatePostVM UpdatePost)
+        {
+            var data = await _context.Posts.Where(x => x.Id == UpdatePost.Id).FirstOrDefaultAsync();
             if (data == null)
                 return 0;
-            
+
             data.UserId = UpdatePost.UserId;
             data.CategoryId = UpdatePost.CategoryId;
             data.PostTitle = UpdatePost.PostTitle;
@@ -145,9 +298,9 @@ namespace PostManagement
             data.UpdatePost = DateTime.Now;
 
             //remove old pics
-            var RemoveOldpic= _context.Picture.Where(x=>x.PostId==data.Id).ToList();
-            _context.Picture.RemoveRange(RemoveOldpic);
-            _context.SaveChanges(); 
+            //var RemoveOldpic= _context.Pictures.Where(x=>x.PostId==data.Id).ToList();
+            //_context.Pictures.RemoveRange(RemoveOldpic);
+            //await _context.SaveChangesAsync(); 
 
             //add new images
             foreach (var post in UpdatePost.Images)
@@ -156,47 +309,57 @@ namespace PostManagement
             }
 
             _context.Posts.Update(data);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return 1;
         }
-        private List<IFormFile> GetPicture(int id)
+        private List<string> GetPicture(int id)
         {
-            var picture = _context.Picture.Where(x => x.PostId == id).ToList();
+            var picture = _context.Pictures.Where(x => x.PostId == id).ToList();
             if (picture.Count == 0)
             {
                 return null;
             }
-            var PicList = new List<IFormFile>();
-            foreach(var item in  picture)
+            var PicList = new List<string>();
+            foreach (var item in picture)
             {
-                var memoryStream = new MemoryStream(item.ImageData);
-                var file = new FormFile(memoryStream, 0, memoryStream.Length, "image.jpg", "image/jpeg");
+                //    var memoryStream = new MemoryStream(item.ImageData);
+                //    var file = new FormFile(memoryStream, 0, memoryStream.Length, "image.jpg", "image/jpeg");
+                //var imageUrls = $"data:image/jpeg;base64,{Convert.ToBase64String(item.ImageData)}");
+                var imageUrls = $"data:image/jpeg;base64,{Convert.ToBase64String(item.ImageData)}";
 
-                PicList.Add(file);
-            }    
+                PicList.Add(imageUrls);
+            }
             return PicList;
         }
-        private int UploadPicture(IFormFile file, int PostId)
+        private async Task<int> UploadPicture(IFormFile file, int PostId)
         {
             if (file == null || file.Length == 0)
             {
                 return 0;
             }
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                file.CopyToAsync(memoryStream);
-                byte[] imageData = memoryStream.ToArray();
-                var picture = new Pictures
-                { 
-                    PostId = PostId,
-                    ImageData = imageData
-                };
-                _context.Picture.Add(picture);
-                _context.SaveChangesAsync();
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    byte[] imageData = memoryStream.ToArray();
+                    var picture = new Pictures
+                    {
+                        PostId = PostId,
+                        ImageData = imageData
+                    };
+                    _context.Pictures.Add(picture);
+                    await _context.SaveChangesAsync();
 
-                return 1;
+                    return 1;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
-        
+
     }
 }

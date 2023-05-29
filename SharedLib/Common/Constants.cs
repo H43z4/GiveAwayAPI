@@ -8,5 +8,7 @@
         public const string RECORD_FOUND_MESSAGE = "Record found.";
         public const string AUTHORIZED_MESSAGE = "Authorized.";
         public const string UN_AUTHORIZED_MESSAGE = "Unauthorized.";
+        public const string MESSAGE_SEND = "Massege send";
+        public const string MESSAGE_NOT_SEND = "Massege sending Failed";
     }
 }

@@ -14,11 +14,11 @@ namespace Models.ViewModels.DSAuth.Setup
 
         //public long? UserDistrictId { get; set; }
 
-        //public long? PersonId { get; set; }
+        public string PersonId { get; set; }
         //public long? RoleId { get; set; }
 
         //public string RoleName { get; set; }
-        //public string UserType { get; set; }
+        public int? UserTypeId { get; set; }
         //public long? UserStatusId { get; set; }
         //public string UserStatus { get; set; }
 

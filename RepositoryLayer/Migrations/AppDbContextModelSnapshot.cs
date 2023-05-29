@@ -544,8 +544,9 @@ namespace RepositoryLayer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<long?>("PersonId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("PersonId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -841,6 +842,30 @@ namespace RepositoryLayer.Migrations
                     b.ToTable("Category", "Setup");
                 });
 
+            modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Chats", b =>
+                {
+                    b.Property<int>("ChatId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ReadStatus")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ChatId");
+
+                    b.ToTable("Chats", "Setup");
+                });
+
             modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.City", b =>
                 {
                     b.Property<long>("Id")
@@ -1103,6 +1128,54 @@ namespace RepositoryLayer.Migrations
                     b.ToTable("DSUserRole", "Setup");
                 });
 
+            modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Messages", b =>
+                {
+                    b.Property<int>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ChatId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("MessageId");
+
+                    b.ToTable("Messages", "Setup");
+                });
+
+            modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Pictures", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Pictures", "Setup");
+                });
+
             modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Post", b =>
                 {
                     b.Property<int>("Id")
@@ -1127,9 +1200,6 @@ namespace RepositoryLayer.Migrations
 
                     b.Property<string>("PostDiscription")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PostImagesId")
-                        .HasColumnType("int");
 
                     b.Property<string>("PostTitle")
                         .HasColumnType("nvarchar(max)");
@@ -1373,6 +1443,57 @@ namespace RepositoryLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Profession", "Setup");
+                });
+
+            modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Rating", b =>
+                {
+                    b.Property<int>("RatingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PostRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProfileRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecevedReviewUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SendReviewUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RatingId");
+
+                    b.ToTable("Rating", "Setup");
+                });
+
+            modelBuilder.Entity("Models.DatabaseModels.DSSDatabaseObjects.Setup.Review", b =>
+                {
+                    b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReceverUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ReviewId");
+
+                    b.ToTable("Review", "Setup");
                 });
 
             modelBuilder.Entity("Models.DatabaseModels.Logging.HttpRequestLog", b =>
