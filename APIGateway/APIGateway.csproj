@@ -6,6 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Attachments\**" />
+    <Compile Remove="Controllers\Payment\**" />
+    <Content Remove="Attachments\**" />
+    <Content Remove="Controllers\Payment\**" />
+    <EmbeddedResource Remove="Attachments\**" />
+    <EmbeddedResource Remove="Controllers\Payment\**" />
+    <None Remove="Attachments\**" />
+    <None Remove="Controllers\Payment\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Logging\ErrorHandlingFilter.cs" />
     <Compile Remove="Logging\InterceptionAttribute.cs" />
   </ItemGroup>
@@ -43,8 +54,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Attachments\" />
-    <Folder Include="Controllers\Payment\" />
     <Folder Include="Rotativa\" />
     <Folder Include="Views\Home\" />
   </ItemGroup>
