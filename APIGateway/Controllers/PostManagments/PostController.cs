@@ -76,12 +76,54 @@ namespace APIGateway.Controllers.PostManagments
                 throw;
             }
         }
+        [HttpPost]
+        public async Task<ApiResponse> ChnagePostApprovalStatus([FromForm] ChangePostStatusVM updatePost)
+        {
+            try
+            {
+                var ds = await this.postManagement.ChnagePostApprovalStatus(updatePost);
+
+                if (ds == 1)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.DATA_SAVED_MESSAGE);
+                }
+                else
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE);
+
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
         [HttpGet]
         public async Task<ApiResponse> GetPosts()
         {
             try
             {
                 var ds =await this.postManagement.GetAllPosts();
+                if (ds.Count > 0&& ds!=null)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
+                }
+                else
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        [HttpGet]
+        public async Task<ApiResponse> GetAllInActivePosts()
+        {
+            try
+            {
+                var ds =await this.postManagement.GetAllInActivePosts();
                 if (ds.Count > 0&& ds!=null)
                 {
                     return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
@@ -155,7 +197,47 @@ namespace APIGateway.Controllers.PostManagments
             {
                 throw;
             }
+        }
+        [HttpGet]
+        public async Task<ApiResponse> GetCountByCategory()
+        {
+            try
+            {
+                var ds = await this.postManagement.GetCountByCategory();
+                if (ds != null)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
+                }
+                else
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         } 
+        [HttpGet]
+        public async Task<ApiResponse> GetCountsByUserType()
+        {
+            try
+            {
+                var ds = await this.postManagement.GetCountsByUserType();
+                if (ds != null)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
+                }
+                else
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
         [HttpDelete]
         public async Task<ApiResponse> DeletePostsbyId(int Id)
         {

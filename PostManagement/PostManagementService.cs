@@ -16,7 +16,11 @@ namespace PostManagement
         Task<int> UpdatePost(UpdatePostVM createPost);
         Task<int> DeletePost(int postId);
         Task<int> ChnagePostStatus(ChangePostStatusVM changePostStatus);
+        Task<int> ChnagePostApprovalStatus(ChangePostStatusVM changePostStatus);
         Task<List<ResponsePostVM>> GetAllPosts();
+        Task<List<ResponsePostVM>> GetAllInActivePosts();
+        Task<List<CountsByCategory>> GetCountByCategory();
+        Task<List<CountsByUserType>> GetCountsByUserType();
         Task<List<ResponsePostVM>> SearchPostsbyTitle(string searchstr, int catogaryid);
         Task<ResponsePostVM> GetPostsById(int Id);
         Task<UserWithPostsVM> GetUserByIdWithPosts(int userId);
@@ -39,6 +43,16 @@ namespace PostManagement
             if (data == null)
                 return 0;
             data.IsActive = changePostStatus.Status;
+            _context.Posts.Update(data);
+            await _context.SaveChangesAsync();
+            return 1;
+        }  
+        public async Task<int> ChnagePostApprovalStatus(ChangePostStatusVM changePostStatus)
+        {
+            var data = await _context.Posts.Where(x => x.Id == changePostStatus.Id).FirstOrDefaultAsync();
+            if (data == null)
+                return 0;
+            data.ApproveStatus = changePostStatus.Status;
             _context.Posts.Update(data);
             await _context.SaveChangesAsync();
             return 1;
@@ -98,12 +112,34 @@ namespace PostManagement
             }
         }
 
+        public async Task<List<ResponsePostVM>> GetAllInActivePosts()
+        {
+            DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
+
+            //get all posts
+            var data = await (from _post in _context.Posts
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.ApproveStatus == null)
+                              select new ResponsePostVM()
+                              {
+                                  Id = _post.Id,
+                                  UserId = _post.UserId,
+                                  CategoryId = _post.CategoryId,
+                                  PostTitle = _post.PostTitle,
+                                  PostDiscription = _post.PostDiscription,
+                                  Quantity = _post.Quantity,
+                                  ValidDate = _post.ValidDate,
+                                  ItemSize = _post.ItemSize,
+                                  Location = _post.Location,
+                              }).ToListAsync();
+
+            return data;
+        }
         public async Task<List<ResponsePostVM>> GetAllPosts()
         {
             DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
 
             //disable post before then 30 days
-            var disable = await _context.Posts.Where(x => x.CreatePost < thirtyDaysAgo && x.IsActive == true).ToListAsync();
+            var disable = await _context.Posts.Where(x => x.CreatePost < thirtyDaysAgo && x.IsActive == true && x.ApproveStatus == true).ToListAsync();
             foreach (var item in disable)
             {
                 var temp = new ChangePostStatusVM();
@@ -114,7 +150,7 @@ namespace PostManagement
 
             //get all posts
             var data = await (from _post in _context.Posts
-                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true)
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.ApproveStatus == true)
                               select new ResponsePostVM()
                               {
                                   Id = _post.Id,
@@ -136,7 +172,52 @@ namespace PostManagement
 
             return data;
         }
+        public async Task<List<CountsByUserType>> GetCountsByUserType()
+        {
+            var postCountsByUserType = await _context.User
+        .Where(x => x.UserStatusId == 1)
+        .Select(p => new CountsByUserType
+        {
+            OrganizationalCounts = p.UserTypeId == 2 ? 1 : 0,
+            IndividualCounts= p.UserTypeId == 1 ? 1 : 0,
+            OtherCounts = p.UserTypeId == 0 ? 1 : 0
+        })
+        .GroupBy(_ => 1)
+    //.Select(g => new CountsByCategory { categoryId = g.Key, totalCount = g.Count() })
+    .Select(g => new CountsByUserType
+    {
+        OrganizationalCounts = g.Sum(p => p.OrganizationalCounts),
+        IndividualCounts = g.Sum(p => p.IndividualCounts),
+        OtherCounts = g.Sum(p => p.OtherCounts),
+    })
+        .ToListAsync();
 
+            return postCountsByUserType;
+        }
+        public async Task<List<CountsByCategory>> GetCountByCategory()
+        {
+            var postCountByCategory = await _context.Posts
+        .Where(x => x.ApproveStatus == true && x.IsActive == true)
+        .Select(p => new CountsByCategory
+        {
+            WantedCounts = p.CategoryId == 4 ? 1 : 0,
+            BorrowCounts = p.CategoryId == 3 ? 1 : 0,
+            NonFoodCounts = p.CategoryId == 2 ? 1 : 0,
+            FoodCounts = p.CategoryId == 1 ? 1 : 0
+        })
+        .GroupBy(_ => 1)
+    //.Select(g => new CountsByCategory { categoryId = g.Key, totalCount = g.Count() })
+    .Select(g => new CountsByCategory
+    {
+        WantedCounts = g.Sum(p => p.WantedCounts),
+        BorrowCounts = g.Sum(p => p.BorrowCounts),
+        NonFoodCounts = g.Sum(p => p.NonFoodCounts),
+        FoodCounts = g.Sum(p => p.FoodCounts)
+    })
+        .ToListAsync();
+
+            return postCountByCategory;
+        }
         public async Task<ResponsePostVM> GetPostsById(int Id)
         {
             try

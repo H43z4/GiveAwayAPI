@@ -12,6 +12,7 @@ namespace Models.DatabaseModels.DSSDatabaseObjects.Setup
         public int Quantity { get; set; } = 0;
         public DateTime CreatePost { get; set; }  
         public  bool IsActive { get; set; }
+        public bool? ApproveStatus { get; set; }
         public DateTime UpdatePost { get; set; }
         public DateTime ValidDate { get; set; }
         public int ItemSize { get; set; }

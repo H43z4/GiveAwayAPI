@@ -5,13 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DatabaseModels\Admin\**" />
     <Compile Remove="DatabaseModels\Identity\**" />
+    <EmbeddedResource Remove="DatabaseModels\Admin\**" />
     <EmbeddedResource Remove="DatabaseModels\Identity\**" />
+    <None Remove="DatabaseModels\Admin\**" />
     <None Remove="DatabaseModels\Identity\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DatabaseModels\Admin\" />
   </ItemGroup>
 
   <ItemGroup>
