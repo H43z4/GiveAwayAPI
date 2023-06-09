@@ -15,7 +15,7 @@ namespace APIGateway.Controllers.SetupControllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
+    [Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
     public class SetupController : ControllerBase
     {
         private readonly IUserManagement userManagementService;
@@ -53,9 +53,11 @@ namespace APIGateway.Controllers.SetupControllers
             }
         }
         [HttpGet]
-        public async Task<ApiResponse> GetUserById(int Id)
+        public async Task<ApiResponse> GetUserById(int userid)
         {
-            var ds = await this.userManagementService.GetUserByUserId(Id);
+            this.userManagementService.VwDSUser = this.User;
+
+            var ds = await this.userManagementService.GetUserByUserId(userid);
 
             if (ds != null)
             {

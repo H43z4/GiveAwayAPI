@@ -139,11 +139,13 @@ namespace APIGateway.Controllers.PostManagments
             }
         }
         [HttpGet]
-        public async Task<ApiResponse> GetUserByIdWithPosts(int userId)
+        public async Task<ApiResponse> GetUserByIdWithPosts()
         {
             try
             {
-                var ds =await this.postManagement.GetUserByIdWithPosts(userId);
+                this.postManagement.VwDSUser = this.User;
+
+                var ds =await this.postManagement.GetUserByIdWithPosts();
                 if ( ds!=null)
                 {
                     return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);

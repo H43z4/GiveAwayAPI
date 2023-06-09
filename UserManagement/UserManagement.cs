@@ -25,7 +25,7 @@ namespace UserManagement
         GeneralType<UserRole> SaveUserRole(UserRole userRole);
         List<Role> GetUserRoles(long userId);
         Task<DataSet> CreateUser(VwDSAUser userObj);
-        Task<User> GetUserByUserId(int userId);
+        Task<User> GetUserByUserId(int? UserId);
         Task<int> UpdateUserData(VwDSAUser userObj);
     }
 
@@ -193,9 +193,11 @@ namespace UserManagement
             var ds = await this.dbHelper.GetDataSetByStoredProcedure("[Setup].[CreateUser]", paramDict);
             return ds;
         }
-        public async Task<User> GetUserByUserId(int userId)
+        public async Task<User> GetUserByUserId(int? UserId)
         {
-            var ds = await context.User.Where(X => X.UserId == userId).FirstOrDefaultAsync(); //
+            //var UserId = (int)VwDSUser.UserId;
+
+            var ds = await context.User.Where(X => X.UserId == UserId).FirstOrDefaultAsync(); //
             return ds;
         }
         public async Task<int> UpdateUserData(VwDSAUser userObj)

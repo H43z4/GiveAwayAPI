@@ -23,7 +23,7 @@ namespace PostManagement
         Task<List<CountsByUserType>> GetCountsByUserType();
         Task<List<ResponsePostVM>> SearchPostsbyTitle(string searchstr, int catogaryid);
         Task<ResponsePostVM> GetPostsById(int Id);
-        Task<UserWithPostsVM> GetUserByIdWithPosts(int userId);
+        Task<UserWithPostsVM> GetUserByIdWithPosts();
     }
     public class PostManagementService : IPostManagementService
     {
@@ -139,7 +139,7 @@ namespace PostManagement
             DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
 
             //disable post before then 30 days
-            var disable = await _context.Posts.Where(x => x.CreatePost < thirtyDaysAgo && x.IsActive == true && x.ApproveStatus == true).ToListAsync();
+            var disable = await _context.Posts.Where(x => x.CreatePost < thirtyDaysAgo && x.IsActive == true).ToListAsync();
             foreach (var item in disable)
             {
                 var temp = new ChangePostStatusVM();
@@ -150,7 +150,7 @@ namespace PostManagement
 
             //get all posts
             var data = await (from _post in _context.Posts
-                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.ApproveStatus == true)
+                              where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true)
                               select new ResponsePostVM()
                               {
                                   Id = _post.Id,
@@ -197,7 +197,7 @@ namespace PostManagement
         public async Task<List<CountsByCategory>> GetCountByCategory()
         {
             var postCountByCategory = await _context.Posts
-        .Where(x => x.ApproveStatus == true && x.IsActive == true)
+        .Where(x => x.IsActive == true)
         .Select(p => new CountsByCategory
         {
             WantedCounts = p.CategoryId == 4 ? 1 : 0,
@@ -253,13 +253,15 @@ namespace PostManagement
 
         }
 
-        public async Task<UserWithPostsVM> GetUserByIdWithPosts(int userId)
+        public async Task<UserWithPostsVM> GetUserByIdWithPosts()
         {
             try
             {
+                var UserId = (int)VwDSUser.UserId;
+
                 DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
                 var userWithPostsVM = new UserWithPostsVM();
-                var data = await UserManagement.GetUserByUserId(userId);
+                var data = await UserManagement.GetUserByUserId(UserId);
                 if (data == null)
                     return null;
                 userWithPostsVM.FullName = data.FullName;
@@ -269,7 +271,7 @@ namespace PostManagement
                 userWithPostsVM.userId = data.UserId;
 
                 userWithPostsVM.Posts = await (from _post in _context.Posts
-                                               where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.UserId == userId)
+                                               where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.UserId == UserId)
                                                select new ResponsePostVM()
                                                {
                                                    Id = _post.Id,
@@ -282,12 +284,26 @@ namespace PostManagement
                                                    ItemSize = _post.ItemSize,
                                                    Location = _post.Location,
                                                }).ToListAsync();
+                userWithPostsVM.ReqPosts = await (from _post in _context.Posts
+                                               where (_post.CreatePost >= thirtyDaysAgo && _post.IsActive == true && _post.UserId != UserId)
+                                               select new ResponsePostVM()
+                                               {
+                                                   Id = _post.Id,
+                                                   UserId = _post.UserId,
+                                                   CategoryId = _post.CategoryId,
+                                                   PostTitle = _post.PostTitle,
+                                                   PostDiscription = _post.PostDiscription,
+                                                   Quantity = _post.Quantity,
+                                                   ValidDate = _post.ValidDate,
+                                                   ItemSize = _post.ItemSize,
+                                                   Location = _post.Location,
+                                               }).Take(2).ToListAsync();
 
-                foreach (var post in userWithPostsVM.Posts)
-                {
-                    post.Images = GetPicture(post.Id);
+                //foreach (var post in userWithPostsVM.Posts)
+                //{
+                //    post.Images = GetPicture(post.Id);
 
-                }
+                //}
                 return userWithPostsVM;
             }
             catch (Exception ex)

@@ -16,6 +16,7 @@ namespace Models.ViewModels.PostManagemrnts
         public string Email { get; set; }
         public string Address { get; set; }
         public List<ResponsePostVM> Posts { get; set; }
+        public List<ResponsePostVM> ReqPosts { get; set; }
 
     }
 }
