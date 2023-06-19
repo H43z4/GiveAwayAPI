@@ -20,11 +20,17 @@ namespace APIGateway.Controllers
 {
     [Route("[controller]/[action]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
+    [Authorize(AuthenticationSchemes = AuthenticationSchemes.JWT_BEARER_TOKEN_STATELESS)]
     public class ReviewController : ControllerBase
     {
         public IReviewServise _ReviewServise { get; }
-
+        public VwDSUser User
+        {
+            get
+            {
+                return (VwDSUser)this.Request.HttpContext.Items["User"];
+            }
+        }
         public ReviewController(IReviewServise Reviws)
         {
             this._ReviewServise = Reviws;
@@ -34,6 +40,11 @@ namespace APIGateway.Controllers
         {
             try
             {
+                _ReviewServise.VwDSUser = User;
+                if(createReviw.ReceverUserId == User.UserId)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE);
+                }
                 var ds = await _ReviewServise.ReviewRequest(createReviw);
                 if (ds == 1)
                 {
@@ -50,18 +61,42 @@ namespace APIGateway.Controllers
             }
         }
         [HttpGet]
-        public async Task<ApiResponse> GetUserReviwToApprove(int userId)
+        public async Task<ApiResponse> GetUserReviwToApprove()
         {
             try
             {
-                var ds = await _ReviewServise.GetUserReviwToApprove(userId);
-                if (ds.Count>0)
+                _ReviewServise.VwDSUser = User;
+
+                var ds = await _ReviewServise.GetUserReviwToApprove();
+                if (ds != null && ds.Count>0)
                 {
-                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.DATA_SAVED_MESSAGE);
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
                 }
                 else
                 {
-                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE);
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        [HttpGet]
+        public async Task<ApiResponse> GetUserReviwRequested()
+        {
+            try
+            {
+                _ReviewServise.VwDSUser = User;
+
+                var ds = await _ReviewServise.GetUserReviwRequested();
+                if (ds != null && ds.Count>0)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.SUCCESS, ds, Constants.RECORD_FOUND_MESSAGE);
+                }
+                else
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.NOT_FOUND_MESSAGE);
                 }
             }
             catch (Exception)

@@ -1,15 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Models.DatabaseModels.Authentication;
 using Models.DatabaseModels.DSSDatabaseObjects.Setup;
+using Models.ViewModels.DSAuth.Setup;
+using Models.ViewModels.PostManagemrnts;
 using Models.ViewModels.ReviewManegment;
+using PostManagement;
 using RepositoryLayer;
+using SharedLib.Interfaces;
+using UserManagement;
 
 namespace ReviewAndRating
 {
-    public interface IReviewServise
+    public interface IReviewServise : ICurrentDSUser
     {
         Task<int> ReviewRequest(CreateReviewVM createReviw);
-        Task<List<Review>> GetUserReviwToApprove(int userId);
+        Task<List<CreateReviewVM>> GetUserReviwToApprove();
+        Task<List<CreateReviewVM>> GetUserReviwRequested();
         Task<int> ApproveReview(int reviewId);
         Task<int> RatingToSender(createRatingVM craeteRating);
 
@@ -17,10 +23,17 @@ namespace ReviewAndRating
     public class ReviewServise : IReviewServise
     {
         private readonly AppDbContext _context;
-
-        public ReviewServise(AppDbContext context)
+        private readonly IPostManagementService _postManagement;
+        private readonly IUserManagement UserManagement;
+        public VwDSUser VwUser { get; set; }
+        public VwDSUser VwDSUser { get; set; }
+        public ReviewServise(AppDbContext context, IPostManagementService postManagement, IUserManagement userManagement)
         {
             _context = context;
+            _postManagement = postManagement;
+            UserManagement = userManagement;
+
+
         }
 
         public async Task<int> ApproveReview(int reviewId)
@@ -34,9 +47,39 @@ namespace ReviewAndRating
             return 1;
         }
 
-        public async Task<List<Review>> GetUserReviwToApprove(int userId)
+        public async Task<List<CreateReviewVM>> GetUserReviwToApprove()
         {
-            return await _context.Review.Where(x => x.SenderUserId == userId && x.Status == "Pending").ToListAsync();            
+            var approvals =  await _context.Review.Where(x => x.ReceverUserId == (int)VwDSUser.UserId && x.Status == "Pending").ToListAsync();
+            if (approvals.Count>0)
+            {
+                var ReviewList = new  List<CreateReviewVM>();
+                foreach (var item in approvals)
+                {
+                    var reviwWDpost = new CreateReviewVM();
+                    reviwWDpost.Post= await _postManagement.GetPostsById(item.PostId);
+                    reviwWDpost.SenderUserName = UserManagement.GetUserByUserId(item.SenderUserId).Result.FullName;
+                    ReviewList.Add(reviwWDpost);
+                }
+                return ReviewList;
+            }
+            return null;
+        }
+        public async Task<List<CreateReviewVM>> GetUserReviwRequested()
+        {
+             var requests = await _context.Review.Where(x => x.SenderUserId == (int)VwDSUser.UserId && x.Status == "Pending").ToListAsync();
+            if (requests.Count > 0)
+            {
+                var ReviewList = new List<CreateReviewVM>();
+                foreach (var item in requests)
+                {
+                    var reviwWDpost = new CreateReviewVM();
+                    reviwWDpost.Post = await _postManagement.GetPostsById(item.PostId);
+                    reviwWDpost.ReceverUserName = UserManagement.GetUserByUserId(item.ReceverUserId).Result.FullName;
+                    ReviewList.Add(reviwWDpost);
+                }
+                return ReviewList;
+            }
+            return null;
         }
 
         public async Task<int> RatingToSender(createRatingVM craeteRating)
@@ -53,30 +96,38 @@ namespace ReviewAndRating
                 _context.Rating.Add(obj);
                 await _context.SaveChangesAsync();
                 return 1;
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 throw;
             }
-    
+
         }
 
         public async Task<int> ReviewRequest(CreateReviewVM createReviw)
         {
+
             try
             {
-                Review add = new Review();
-                add.PostId = createReviw.PostId;
-                add.SenderUserId = createReviw.SenderUserId;
-                add.ReceverUserId = createReviw.ReceverUserId;
-                add.Status = "Pending";
-                _context.Review.Add(add);
-                await _context.SaveChangesAsync();
-                return 1;
-            }catch (Exception ex)
+                var requestData = await _context.Review.Where(x => x.PostId == createReviw.PostId && x.SenderUserId == (int)VwDSUser.UserId && x.ReceverUserId == createReviw.ReceverUserId).FirstOrDefaultAsync();
+                if (requestData == null)
+                {
+                    Review add = new Review();
+                    add.PostId = createReviw.PostId;
+                    add.SenderUserId = (int)VwDSUser.UserId;
+                    add.ReceverUserId = createReviw.ReceverUserId;
+                    add.Status = "Pending";
+                    _context.Review.Add(add);
+                    await _context.SaveChangesAsync();
+                    return 1;
+                }
+                return 0;
+            }
+            catch (Exception ex)
             {
                 throw;
             }
-           
+
         }
     }
 }

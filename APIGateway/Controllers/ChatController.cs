@@ -56,6 +56,10 @@ namespace APIGateway.Controllers
             try
             {
                 _ChatServise.VwDSUser = User;
+                if (SendMessege.ReceiverUserId == User.UserId)
+                {
+                    return ApiResponse.GetApiResponse(ApiResponseType.FAILED, null, Constants.DATA_NOT_SAVED_MESSAGE);
+                }
                 var ds = await _ChatServise.Chatbox(SendMessege);
                 if (ds != null)
                 {

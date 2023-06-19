@@ -223,14 +223,14 @@ namespace PostManagement
             try
             {
                 DateTime thirtyDaysAgo = DateTime.Today.AddDays(-30);
-                var data = _context.Posts.Where(x => x.Id == Id && x.CreatePost >= thirtyDaysAgo && x.IsActive == true).FirstOrDefault();
+                var data = await _context.Posts.Where(x => x.Id == Id && x.CreatePost >= thirtyDaysAgo && x.IsActive == true).FirstOrDefaultAsync();
                 if (data == null)
                     return null;
 
                 var datapost = new ResponsePostVM();
                 datapost.Id = data.Id;
                 datapost.UserId = data.UserId;
-                var userDetail = _context.User.Where(x=>x.UserId == datapost.UserId ).FirstOrDefault();
+                var userDetail = await _context.User.Where(x=>x.UserId == datapost.UserId ).FirstOrDefaultAsync();
                 if (userDetail != null)
                 {
                     datapost.UserName = userDetail.FullName;
